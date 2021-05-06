@@ -11,11 +11,12 @@ class Comestic:
     def __init__(self):
         self.driver = webdriver.Firefox(executable_path=r"C:\Users\nguyentan.khoi\PycharmProjects\SeleniumProject\Driver\geckodriver.exe")
 
+    # ------------------------------------------------------------ Brand ----------------------------------------------------
     def login(self):
 
         self.driver.find_element_by_id("btnlogin").click()
-        self.driver.find_element_by_id("username").send_keys("mitsu")
-        self.driver.find_element_by_id("pwd").send_keys("asus.123")
+        self.driver.find_element_by_id("username").send_keys("ADMIN")
+        self.driver.find_element_by_id("pwd").send_keys("1")
         self.driver.find_elements_by_id("button")[0].click()
 
     def checkingCreateNullData(self):
@@ -80,15 +81,7 @@ class Comestic:
         return None
 
     def checkUpdateBrandFollowId(self, id, req):
-        # objSend ={
-        #   "brandId": req["brandId"],
-        #   "name": req["name"],
-        #   "phoneNumber": req["phoneNumber"],
-        #   "email": req["email"],
-        #   "description": req["description"],
-        #   "startedDate": req["startedDate"],
-        #   "note": req["note"]
-        # }
+
 
         urlLogin = "http://localhost:44394/api/Personal_Information/Login"
         headers = CaseInsensitiveDict()
@@ -97,16 +90,7 @@ class Comestic:
             "account": "ADMIN",
             "password": "1"
         }
-        arrKey = {
-            "brandId": "Acnes",
-            "name": "Acnes",
-            "phoneNumber": "1900636900",
-            "email": "ffwwwfwwww",
-            "description": "Sản phẩm trị mụn",
-            "startedDate": "2021-05-05T00:00:00",
-            "note": "",
-            "product": "null"
-        }
+
         contentAfterlogin = requests.post(urlLogin, data=json.dumps(auth, indent=10), headers=headers)
         myToken = json.loads(contentAfterlogin.text)
 
@@ -117,11 +101,68 @@ class Comestic:
         resPut = requests.put(url, data=json.dumps(req,indent=10), headers=headers)
 
         return resPut
+    # ---------------------------------------------------------- Category --------------------------------------------------
+    def checkingCreateCategoryNullData(self):
+        self.driver.get("https://localhost:44394/category")
+        self.login()
 
 
+        self.driver.find_element_by_id("tdmm").click()
+        self.driver.find_element_by_id("tdm").click()
+        # self.driver.quit()
+        return True
 
+    def checkCreateCatgoryNullData_1(self):
+        self.driver.get("https://localhost:44394/api/Category/searchCategory/100,1")
+        allCategory = []
+        resultJSON  =self.driver.find_element_by_id("json").text
+        listCategoryReturn = json.loads(str(resultJSON))
+        for i in range(0, len (listCategoryReturn["data"])):
+            categoryIdCheck = listCategoryReturn["data"][i].get("categoryId")
+            if(categoryIdCheck == ""):
+                allCategory.append(listCategoryReturn["data"][i])
+        self.driver.quit()
+        if (allCategory != []):
+            return False
+        return True
+    def checkDeleteCatgoryFollowId(self, id):
+        urlLogin = "http://localhost:44394/api/Personal_Information/Login"
+        headers = CaseInsensitiveDict()
+        headers["Content-Type"] = "application/json"
+        auth = {
+            "account": "mitsu",
+            "password": "asus.123"
+        }
+        contentAfterlogin = requests.post(urlLogin, data=json.dumps(auth, indent=10), headers=headers)
+        myToken = json.loads(contentAfterlogin.text)
+        url = "http://localhost:44394/api/Category/deleteCategory/" + str(id)
+        headers[
+            "Authorization"] = "Bearer " + myToken["token"]
+        resp = requests.delete(url, headers=headers)
 
+        if (resp.status_code == 500):
+            return resp.reason
+        elif (resp.status_code == 200):
+            if (resp.text == "Unable to delete: not found ID."):
+                return "not found ID"
 
+        return None
 
+    def checkUpdateCategoryFollowId(self, id, req):
+        urlLogin = "http://localhost:44394/api/Personal_Information/Login"
+        headers = CaseInsensitiveDict()
+        headers["Content-Type"] = "application/json"
+        auth = {
+            "account": "ADMIN",
+            "password": "1"
+        }
 
+        contentAfterlogin = requests.post(urlLogin, data=json.dumps(auth, indent=10), headers=headers)
+        myToken = json.loads(contentAfterlogin.text)
 
+        headers[
+            "Authorization"] = "Bearer " + myToken["token"]
+        url = "http://localhost:44394/api/Category/updateCategoryPut/" + str(id)
+        resPut = requests.put(url, data=json.dumps(req, indent=10), headers=headers)
+
+        return resPut
